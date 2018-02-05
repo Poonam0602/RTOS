@@ -1,0 +1,25 @@
+//Arduino code:
+int counter = -1;
+int MAX_VALUE = 16;
+
+void updateLED(int pin, int bit, int ctr) {
+    digitalWrite(pin,  (ctr & (1<<bit)) == (1<<bit) ? HIGH : LOW);
+}
+
+void setup() {
+    // put your setup code here, to run once:
+    pinMode(1, OUTPUT);
+    pinMode(2, OUTPUT);
+    pinMode(3, OUTPUT);
+    pinMode(4, OUTPUT);
+}
+
+void loop() {
+    // put your main code here, to run repeatedly:
+    counter = (counter + 1) % MAX_VALUE;    
+    updateLED(1, 0, counter);
+    updateLED(2, 1, counter);
+    updateLED(3, 2, counter);
+    updateLED(4, 3, counter);
+    delay(10);
+}

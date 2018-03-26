@@ -1,0 +1,15 @@
+Obeservation:
+1. Local and global variable addresses of child and parent proccess are same
+
+Explaination:
+This is because of CoW feature .
+Copy-on-write: when cloning a process, do not replicate its memory, but mark
+its pages as “need to be copied on the next write access”.So, whenever child writes/updates value of variable, then only new copy is created.In case of COW , parent process and child process share the same process address space, until one of the process don’t write , if some process write, then we create for copying of address space.
+The addresses displayed on our screens are virtual addresses which represents different physical addresses at the background.
+
+2. Parent PID(number) is greater than child PIDs.
+3. Both processes start their execution right after the system call fork(). Since both processes have identical but separate address spaces, those variables initialized before the fork() call have the same values in both address spaces. Since every process has its own address space, any modifications will be independent of the others. In other words, if the parent changes the value of its variable, the modification will only affect the variable in the parent process's address space. Other address spaces created by fork() calls will not be affected even though they have identical variable names.
+4. If the fork() function is successful then it returns twice. Once it returns in the child process with return value ‘0’ and then it returns in the parent process with child’s PID as return value. This behavior is because of the fact that once the fork is called, child process is created and since the child process shares the text segment with parent process and continues execution from the next statement in the same text segment so fork returns twice (once in parent and once in child).
+5. If a process exits and its parent has not yet waited for it, process enters in zombie state. When parent finally waits for it, process terminates.
+
+ 

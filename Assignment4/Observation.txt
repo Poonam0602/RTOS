@@ -1,0 +1,15 @@
+Obeservations:
+
+1. Like processes threads share CPU and only one thread active (running) at a time. (source : htop command in linux)
+
+2. Unlike processes, threads are not independent of one another. Change in main thread may change the behaviour of other threads. i.e. sharing among threads is easy and fast. Context switching is smooth.
+    All threads have same copy of global variables. So, whenever a thread updates value of variable, it gets updated for other threads too. But, this is not the case with local variables. They are not shared among threads.(Global variables are stored in heap whereas local are stored in stack).
+i.e. Heap is shared among threads while stack is different for each thread.
+
+3. A thread has done it’s job and wants to terminate calls pthread and exits. Thread can wait for another thread to exit by calling pthread_join(). If thrread waited has already exited, pthread_join finishes immediately. Otherwise, it blocks.
+
+4. All threads run parallelly. So, the sequence of execution is really random. So, in order to check he output, I have added sleep in the program at few places.
+
+
+
+

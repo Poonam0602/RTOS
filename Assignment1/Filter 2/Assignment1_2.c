@@ -4,7 +4,7 @@
 int main()
 {
     FILE *fpr, *fpw;
-    fpr = fopen("Sample.csv","r");
+    fpr = fopen("Samples.csv","r");
     fpw = fopen("FilteredSamples.csv","w+");
     char s[10];
     char ch;

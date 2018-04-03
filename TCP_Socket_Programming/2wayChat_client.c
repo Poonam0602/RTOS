@@ -1,5 +1,5 @@
 /*
-    C ECHO client example using sockets
+    C client example using sockets
 */
 #include<stdio.h> //printf
 #include<string.h>    //strlen
@@ -15,7 +15,6 @@ void * receive1(void * socket)
 {
     int socket_fd, response;
     char message[MESSAGE_BUFFER];
-    //memset(message, 0, MESSAGE_BUFFER); // Clear message buffer
     socket_fd = (int) socket;
 
     // Print received message

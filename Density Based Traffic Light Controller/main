@@ -1,0 +1,529 @@
+/*----------------------------------------------------------------------------
+ * CMSIS-RTOS 'main' function template
+ *---------------------------------------------------------------------------*/
+ 
+#include "RTE_Components.h"             // Component selection
+#include "cmsis_os2.h"
+#include "RTX_Config.h"                 // ARM::CMSIS:RTOS2:Keil RTX5
+#include  CMSIS_device_header
+ 
+#ifdef RTE_Compiler_EventRecorder
+#include "EventRecorder.h"
+#endif
+ 
+GPIO_Type * led_addr[]    = { PTD,
+                              PTB,
+                              PTE,
+															PTC,
+															PTA};
+
+															
+void PORT_Initialize(void) 
+{
+
+  SIM->SCGC5     |= ((1UL <<  13) | (1UL <<  10)| (1UL <<  11)|(1UL <<  12)|(1UL <<  9));   /* Enable Port B,E Clock */
+	
+	PORTB->PCR[2]  = (1UL <<  8);                     
+	PORTB->PCR[3]  = (1UL <<  8);
+	PORTB->PCR[10]  = (1UL <<  8);
+	PORTB->PCR[18]  = (1UL <<  8);
+	PORTB->PCR[19]  = (1UL <<  8);
+	PORTB->PCR[21]  = (1UL <<  8);                     
+	PORTB->PCR[22]  = (1UL <<  8);                     
+	
+	PORTE->PCR[26]  = (1UL <<  8);	
+
+	PORTC->PCR[5]  = (1UL <<  8);
+	PORTC->PCR[7]  = (1UL <<  8);
+	PORTC->PCR[0]  = (1UL <<  8);
+	PORTC->PCR[9]  = (1UL <<  8);
+	PORTC->PCR[1]  = (1UL <<  8);
+	
+	//IR's port
+	PORTD->PCR[0]  = (1UL <<  8);
+	PORTD->PCR[1] = (1UL << 8);
+	PORTD->PCR[2]  = (1UL <<  8);
+	PORTD->PCR[3] = (1UL << 8);
+	
+	PORTC->PCR[2]  = (1UL <<  8);
+	PORTC->PCR[3]  = (1UL <<  8);
+	PORTC->PCR[4]  = (1UL <<  8);
+	PORTC->PCR[10]  = (1UL <<  8);
+	PORTC->PCR[11]  = (1UL <<  8);
+	PORTC->PCR[12]  = (1UL <<  8);
+	
+	  
+	
+	PTB->PDDR |= ((1U << 2)|(1U << 3)|(1U << 10)|(1U << 18)|(1U << 19)|(1U << 21)|(1U << 22)) ;
+	PTC->PDDR |= ((1U << 5)|(1U << 7)|(1U << 0)|(1U << 9)|(1U << 1)|(0U << 2)|(0U << 3)|(0U << 4)|(0U << 10)|(0U << 11)|(0U << 12));
+	
+	PTE->PDDR = (1U<<26);
+	
+	PTB->PCOR |= ((1U << 2)|(1U << 3)|(1U << 10)|(1U << 18)|(1U << 19)) ;
+	PTC->PCOR |= ((1U << 5)|(1U << 7)|(1U << 0)|(1U << 9)|(1U << 1)) ;
+	                                     
+	PTD->PDDR |=((0U <<  1)|(0U <<  3)|(0U << 2)|(0U << 0));
+	
+	PTB->PDOR = ((1U << 21)|(1U << 22)); //Port Data Output Register
+  PTE->PDOR = (1U<<26);
+
+}
+															
+int TimerDelay;
+int YellowDelay = 3000;
+int BlinkDelay = 2000;
+int BlinkInterval = 200;
+int TimerDelayLvl0 = 5000;
+int TimerDelayLvl1 = 7000;
+int TimerDelayLvl2 = 9000;
+int delay = 10000;
+
+osTimerId_t s1yId,s1rId,s2yId,s2rId,s3yId,s3rId,s4yId,s4rId;
+uint32_t  s1yState,s2yState,s3yState,s4yState,s1rState,s2rState,s3rState,s4rState; 
+
+osTimerId_t irqAId;
+osMutexId_t mutex_id; 
+
+
+void irqA (void *argument); 
+
+osThreadId_t tid_irqA;
+osThreadId_t tid_app_main;
+
+
+osStatus_t status;        
+
+const uint32_t led_mask[] = { 1UL << 22,
+                              1UL << 21,
+                              1UL << 26 };
+
+
+#define LED_RED    0
+#define LED_BLUE   1
+#define LED_GREEN  2
+
+/*----------------------------------------------------------------------------
+  Function that turns on Red LED
+ *----------------------------------------------------------------------------*/
+void LEDRed_On (void) {
+  led_addr[LED_BLUE]->PSOR  = led_mask[LED_BLUE];   /* Blue LED Off */
+  led_addr[LED_GREEN]->PSOR = led_mask[LED_GREEN];  /* Green LED Off*/
+  led_addr[LED_RED]->PCOR   = led_mask[LED_RED];    /* Red LED On   */
+}
+
+/*----------------------------------------------------------------------------
+  Function that turns on Green LED
+ *----------------------------------------------------------------------------*/
+void LEDGreen_On (void) {
+  led_addr[LED_RED]->PSOR   = led_mask[LED_RED];   /* Red LED Off   */
+  led_addr[LED_BLUE]->PSOR  = led_mask[LED_BLUE];  /* Blue LED Off  */
+  led_addr[LED_GREEN]->PCOR = led_mask[LED_GREEN]; /* Green LED On  */
+}
+
+/*----------------------------------------------------------------------------
+  Function that turns on Blue LED
+ *----------------------------------------------------------------------------*/
+void LEDBlue_On (void) {
+  led_addr[LED_RED]->PSOR   = led_mask[LED_RED];   /* Red LED Off   */
+  led_addr[LED_GREEN]->PSOR = led_mask[LED_GREEN]; /* Green LED Off */
+  led_addr[LED_BLUE]->PCOR  = led_mask[LED_BLUE];  /* Blue LED On   */
+}
+
+
+void s4rBlink(void *arg)
+{	
+	while(s4rState == 0)
+	{	
+		PTB->PSOR |= ((1U << 3)|(1U << 10));
+		PTB->PCOR |= (1U << 2);
+		osDelay(BlinkInterval);
+		PTB->PSOR |= ((1U << 3)|(1U << 10)|(1U << 2));
+		osDelay(BlinkInterval);
+	}
+	//before returning, s4R->on, s1R->off 
+	PTB->PCOR |= ((1U << 2)|(1U << 3)|(1U << 10));
+	return;		
+}
+
+void s4yBlink(void *arg)
+{	
+	while(s4yState == 0)
+	{	
+		PTC->PCOR = (1U << 9);
+		osDelay(BlinkInterval);
+		PTC->PSOR = (1U << 9);
+		osDelay(BlinkInterval);
+	}
+	return;		
+}
+
+void s3rBlink(void *arg)
+{	
+	while(s3rState == 0)
+	{	
+		PTB->PCOR |= ((1U << 2)|(1U << 10));
+		PTB->PSOR |= (1U << 3);
+		osDelay(BlinkInterval);
+		PTB->PSOR |= ((1U << 3)|(1U << 10)|(1U << 2));
+		osDelay(BlinkInterval);
+	}
+	//before returning, s3R->on, s4R->off 
+	PTB->PSOR |= ((1U << 3)|(1U << 10));
+	PTB->PCOR |= (1U << 2);
+	return;		
+}
+
+void s3yBlink(void *arg)
+{	
+	while(s3yState == 0)
+	{	
+		PTC->PCOR = (1U << 0);
+		osDelay(BlinkInterval);
+		PTC->PSOR = (1U << 0);
+		osDelay(BlinkInterval);
+	}
+	return;		
+}
+
+void s2rBlink(void *arg)
+{	
+	while(s2rState == 0)
+	{	
+		PTB->PCOR |= ((1U << 2)|(1U << 3));
+		PTB->PSOR |= (1U << 10);
+		osDelay(BlinkInterval);
+		PTB->PSOR |= ((1U << 3)|(1U << 10)|(1U << 2));
+		osDelay(BlinkInterval);
+	}
+	//before returning, s2R->on, s3R->off 
+	PTB->PCOR |= ((1U << 2)|(1U << 10));
+	PTB->PSOR |= (1U << 3);
+	return;		
+}
+
+void s2yBlink(void *arg)
+{	
+	while(s2yState == 0)
+	{	
+		PTC->PCOR = (1U << 7);
+		osDelay(BlinkInterval);
+		PTC->PSOR = (1U << 7);
+		osDelay(BlinkInterval);
+	}
+	return;		
+}
+
+void s1rBlink(void *arg)
+{	
+	//blink s1R
+	while(s1rState == 0)
+	{	
+		PTB->PCOR |= ((1U << 2)|(1U << 3)|(1U << 10));
+		osDelay(BlinkInterval);
+		PTB->PSOR |= ((1U << 3)|(1U << 10)|(1U << 2));
+		osDelay(BlinkInterval);
+	}
+	//before returning, s1R->on, s2R->off 
+	PTB->PCOR |= ((1U << 2)|(1U << 3));
+	PTB->PSOR = (1U << 10);
+	return;		
+}
+
+void s1yBlink(void *arg)
+{	
+	while(s1yState == 0)
+	{	
+		PTC->PCOR = (1U << 5);
+		osDelay(BlinkInterval);
+		PTC->PSOR = (1U << 5);
+		osDelay(BlinkInterval);
+	}
+	return;		
+}
+
+void s1G(int Delay)
+{
+	//s4Y->off,s1G->on
+	PTC->PCOR = ((1U << 9)|(1U << 1));
+	PTB->PCOR |= ((1U << 18)|(1U << 19));
+	osDelay(Delay);
+}
+
+void s1Y(int Delay)
+{
+	//s1G->off, s1Y->on
+	PTB->PSOR |= ((1U << 18)|(1U << 19));
+	PTC->PSOR |= ((1U << 1)|(1U << 5));
+	osDelay(Delay);
+}
+
+void s2G(int Delay)
+{
+	// s2G->on,s1Y->off
+	PTC->PCOR = (1U << 5);
+	PTB->PCOR |= ((1U << 18)|(1U << 19));
+	PTC->PSOR = (1U << 1);
+	osDelay(Delay);
+}
+
+void s2Y(int Delay)
+{
+	//s2G->off, s2Y->on
+		PTB->PSOR |= ((1U << 18)|(1U << 19));
+		PTC->PSOR |= ((1U << 1)|(1U << 7));
+	osDelay(Delay);
+}
+
+void s3G(int Delay)
+{
+	//s2Y->off, s3G->on
+	PTC->PCOR |= ((1U << 7)|(1U << 1));
+	PTB->PSOR = (1U << 19);
+	PTB->PCOR = (1U << 18);
+	osDelay(Delay);
+}
+
+void s3Y(int Delay)
+{
+	//s3G->off, s3Y->on
+	PTB->PSOR |= ((1U << 18)|(1U << 19));
+	PTC->PSOR |= ((1U << 1)|(1U << 0));
+	osDelay(Delay);
+}
+
+void s4G(int Delay)
+{
+	//s3Y->off, s4G->on
+	PTC->PCOR = (1U << 0);
+	PTB->PSOR = (1U << 19);
+	PTB->PCOR =(1U << 18);
+	PTC->PSOR = (1U << 1);
+	osDelay(Delay);
+}
+
+void s4Y(int Delay)
+{
+	//s4G->off, s4Y->on
+	PTB->PSOR |= ((1U << 18)|(1U << 19));
+	PTC->PSOR |= ((1U << 1)|(1U << 9));
+	osDelay(Delay);
+}
+
+
+
+int s1TimerCal () {
+		if((PTC->PDIR | 0xF3FF) == 0xFFFF) //c10,c11 both on
+		{
+			LEDGreen_On();
+			return TimerDelayLvl0;
+		}
+		else if((PTC->PDIR | 0xFBFF) == 0xFFFF) //only c10 on
+		{
+			LEDRed_On();
+			return TimerDelayLvl1;
+		}	
+		else	//both off
+		{
+			LEDBlue_On();
+			return TimerDelayLvl1;
+		}	
+}
+
+int s2TimerCal () {
+		if((PTD->PDIR | 0xFFFA)== 0xFFFF) //D0,D2 both on
+		{
+			LEDGreen_On();
+			return TimerDelayLvl0;
+		}
+		else if((PTD->PDIR | 0xFFFE)== 0xFFFF) //only D0 on
+		{
+			LEDRed_On();
+			return TimerDelayLvl1;
+		}	
+		else
+		{
+			LEDBlue_On();
+			return TimerDelayLvl2;	//both off
+			
+		}
+}
+
+int s3TimerCal () {
+	if((PTC->PDIR | 0xEFEF)== 0xFFFF) //c4,c12 both on
+		{
+			LEDGreen_On();
+			return TimerDelayLvl0;
+		}
+		else if((PTC->PDIR == 0xFFEF)) //only c4 on
+		{
+			LEDRed_On();
+			return TimerDelayLvl1;
+		}	
+		else	//both off
+		{
+			LEDBlue_On();
+			return TimerDelayLvl2;
+		}
+}
+
+int s4TimerCal () {
+		if((PTC->PDIR | 0xFFF3)== 0xFFFF) //c2,c3 both on
+		{
+			LEDGreen_On();
+			return TimerDelayLvl0;
+		}
+		else if((PTC->PDIR | 0xFFFB)== 0xFFFF) //only c2 on
+		{
+			LEDRed_On();
+			return TimerDelayLvl1;
+		}	
+		else	//both off
+		{
+			LEDBlue_On();
+			return TimerDelayLvl2;
+		}
+}
+
+int Init_Thread (void) {
+ 
+ 
+	
+	tid_irqA = osThreadNew (irqA, NULL, NULL);
+  if (!tid_irqA) return(5);
+	
+	
+	//osPriorityAboveNormal6
+	status = osThreadSetPriority(tid_irqA,osPriorityRealtime1); 
+	
+
+  return(0);
+}
+
+
+void idleCallback(void *arg) 
+{
+	return;
+}
+
+void Init_Timer(void)
+{
+	s1yId = osTimerNew (s1yBlink, osTimerPeriodic, &s1yState,NULL);
+	s1rId = osTimerNew (s1rBlink, osTimerPeriodic, &s1rState,NULL);
+	s2yId = osTimerNew (s2yBlink, osTimerPeriodic, &s2yState,NULL);
+	s2rId = osTimerNew (s2rBlink, osTimerPeriodic, &s2rState,NULL);
+	s3yId = osTimerNew (s3yBlink, osTimerPeriodic, &s3yState,NULL);
+	s3rId = osTimerNew (s3rBlink, osTimerPeriodic, &s3rState,NULL);
+	s4yId = osTimerNew (s4yBlink, osTimerPeriodic, &s4yState,NULL);
+	s4rId = osTimerNew (s4rBlink, osTimerPeriodic, &s4rState,NULL);
+	irqAId = osTimerNew (idleCallback, osTimerPeriodic, NULL,NULL);
+}
+
+
+void irqA (void *argument) 
+{
+  while (1) 
+	{
+		if((PTD->PDIR | 0XFFFD)== 0xFFFF)
+		{	
+			PTB->PSOR |= ((1U <<  18)|(1U <<  2)) ;  
+			PTB->PCOR |= ((1U <<  19)|(1U <<  3)| (1U <<  10));
+			PTC->PCOR = (1U <<  1) ;
+			osTimerStart (irqAId, delay);
+			//osDelay(delay);
+		} 
+		//PTD->PDDR =(0U <<  1)|(0U <<  3);
+		osDelay(500);
+  }
+}
+
+void app_main (void *argument) 
+{
+ 	int thread_chk;
+	PORT_Initialize();	//Define IO ports
+	thread_chk = Init_Thread();	//ISR threads initialisation
+	Init_Timer();		//Initialize all timers
+	
+	if(thread_chk == 5)
+		osThreadTerminate(tid_irqA);
+	
+	while(1)
+	{
+		//s1->G	
+		TimerDelay = s1TimerCal();
+		s1G((TimerDelay - BlinkDelay));
+		s1yState = 0;
+		osTimerStart (s1yId, (TimerDelay - BlinkDelay));
+		osDelay(TimerDelay);
+		s1yState = 1;
+		osTimerStop (s1yId);
+		
+		//s1->Y	
+		s1Y((YellowDelay - BlinkDelay));
+		s1rState = 0;
+		osTimerStart (s1rId, (YellowDelay - BlinkDelay));
+		osDelay(YellowDelay);
+		s1rState = 1;
+		osTimerStop (s1rId);
+		
+		//s2->G,s1->R 
+		TimerDelay = s2TimerCal();
+		s2G((TimerDelay - BlinkDelay));
+		s2yState = 0;
+		osTimerStart (s2yId, (TimerDelay - BlinkDelay));
+		osDelay(TimerDelay);
+		s2yState = 1;
+		osTimerStop (s2yId);
+
+		//s2->Y 
+		s2Y((YellowDelay - BlinkDelay));
+		s2rState = 0;
+		osTimerStart (s2rId, (YellowDelay - BlinkDelay));
+		osDelay(YellowDelay);
+		s2rState = 1;
+		osTimerStop (s2rId);
+		
+		//s3->G,s2->R	
+		TimerDelay = s3TimerCal();
+		s3G((TimerDelay - BlinkDelay));
+		s3yState = 0;
+		osTimerStart (s3yId, (TimerDelay - BlinkDelay));
+		osDelay(TimerDelay);
+		s3yState = 1;
+		osTimerStop (s3yId);
+		
+		//s3->Y	
+		s3Y((YellowDelay - BlinkDelay));
+		s3rState = 0;
+		osTimerStart (s3rId, (YellowDelay - BlinkDelay));
+		osDelay(YellowDelay);
+		s3rState = 1;
+		osTimerStop (s3rId);
+		
+		//s4->G,s3->R	
+		TimerDelay = s4TimerCal();
+		s4G((TimerDelay - BlinkDelay));
+		s4yState = 0;
+		osTimerStart (s4yId, (TimerDelay - BlinkDelay));
+		osDelay(TimerDelay);
+		s4yState = 1;
+		osTimerStop (s4yId);
+		
+		//s4->Y	
+		s4Y((YellowDelay - BlinkDelay));
+		s4rState = 0;
+		osTimerStart (s4rId, (YellowDelay - BlinkDelay));
+		osDelay(YellowDelay);
+		s4rState = 1;
+		osTimerStop (s4rId);		
+	}	
+}
+ 
+int main (void) 
+{
+  SystemCoreClockUpdate();
+  osKernelInitialize();                 // Initialize CMSIS-RTOS
+  tid_app_main = osThreadNew(app_main, NULL, NULL);    // Create application main thread
+	status = osThreadSetPriority(tid_app_main,osPriorityNormal);
+  osKernelStart();                      // Start thread execution
+  while(1);
+}

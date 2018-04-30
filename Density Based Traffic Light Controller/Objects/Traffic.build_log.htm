@@ -1,0 +1,132 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: µVision V5.25.2.0
+Copyright (C) 2018 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: Poonam W, IIITB, LIC=----
+ 
+Tool Versions:
+Toolchain:       MDK-Lite  Version: 5.25.2.0
+Toolchain Path:  C:\Keil_v5\ARM\ARMCC\Bin
+C Compiler:      Armcc.exe V5.06 update 6 (build 750)
+Assembler:       Armasm.exe V5.06 update 6 (build 750)
+Linker/Locator:  ArmLink.exe V5.06 update 6 (build 750)
+Library Manager: ArmAr.exe V5.06 update 6 (build 750)
+Hex Converter:   FromElf.exe V5.06 update 6 (build 750)
+CPU DLL:         SARMCM3.DLL V5.25.2.0
+Dialog DLL:      DCM.DLL V1.17.1.0
+Target DLL:      Segger\JL2CM3.dll V2.99.29.0
+Dialog DLL:      TCM.DLL V1.35.1.0
+ 
+<h2>Project:</h2>
+D:\IIITB Assignments\RTOS\Project\Keil Projects\Blinky\Boards\NXP\FRDM-K64F\New_blinky\Traffic.uvprojx
+Project File Date:  04/25/2018
+
+<h2>Output:</h2>
+*** Using Compiler 'V5.06 update 6 (build 750)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
+Rebuild target 'Target 1'
+assembling irq_cm4f.s...
+compiling cmsis_os1.c...
+compiling main.c...
+compiling rtx_delay.c...
+compiling rtx_evflags.c...
+compiling rtx_lib.c...
+compiling rtx_evr.c...
+compiling rtx_kernel.c...
+compiling rtx_memory.c...
+compiling rtx_mempool.c...
+compiling rtx_semaphore.c...
+compiling rtx_mutex.c...
+compiling rtx_msgqueue.c...
+compiling rtx_system.c...
+compiling rtx_timer.c...
+compiling rtx_thread.c...
+compiling RTX_Config.c...
+assembling startup_MK64F12.s...
+compiling os_systick.c...
+compiling system_MK64F12.c...
+RTE\Device\MK64FN1M0xxx12\system_MK64F12.c(143): warning:  #2532-D: support for trigraphs is disabled
+    /* WDOG->STCTRLH: ??=0,DISTESTWDOG=0,BYTESEL=0,TESTSEL=0,TESTWDOG=0,??=0,??=1,WAITEN=1,STOPEN=1,DBGEN=0,ALLOWUPDATE=1,WINEN=0,IRQRSTEN=0,CLKSRC=1,WDOGEN=0 */
+RTE\Device\MK64FN1M0xxx12\system_MK64F12.c: 1 warning, 0 errors
+linking...
+Program Size: Code=15556 RO-data=1316 RW-data=6020 ZI-data=1028  
+".\Objects\Traffic.axf" - 0 Error(s), 1 Warning(s).
+
+<h2>Software Packages used:</h2>
+
+Package Vendor: ARM
+                http://www.keil.com/pack/ARM.CMSIS.5.3.0.pack
+                ARM.CMSIS.5.3.0
+                CMSIS (Cortex Microcontroller Software Interface Standard)
+   * Component: RTOS Version: 1.0.0
+   * Component: RTOS2 Version: 2.1.2
+   * Component: CORE Version: 5.1.1
+   * Component: Keil RTX5 Version: 5.3.0
+   * Component: Keil RTX5 Variant: Source Version: 5.3.0
+
+Package Vendor: Keil
+                http://www.keil.com/pack/Keil.Kinetis_K60_DFP.1.5.0.pack
+                Keil.Kinetis_K60_DFP.1.5.0
+                NXP Kinetis K60 Series Device Support and Examples
+   * Component: Startup Version: 1.0.0
+
+<h2>Collection of Component include folders:</h2>
+  .\RTE\CMSIS
+  .\RTE\_Target_1
+  C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include
+  C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\RTOS2\Include
+  C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\RTOS2\RTX\Include
+  C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\RTOS2\RTX\Include1
+  C:\Keil_v5\ARM\PACK\Keil\Kinetis_K60_DFP\1.5.0\Device\Include
+
+<h2>Collection of Component Files used:</h2>
+
+   * Component: ::CMSIS:RTOS:1.0.0 (API)
+
+   * Component: ::CMSIS:RTOS2:2.1.2 (API)
+      Include file:  CMSIS\RTOS2\Include\cmsis_os2.h
+
+   * Component: ARM::CMSIS:CORE:5.1.1
+
+   * Component: ARM::CMSIS:RTOS:Keil RTX5:5.3.0
+      Include file:  CMSIS\RTOS2\RTX\Include1\cmsis_os.h
+      Source file:   CMSIS\RTOS2\RTX\Library\cmsis_os1.c
+
+   * Component: ARM::CMSIS:RTOS2:Keil RTX5:Source:5.3.0
+      Source file:   CMSIS\RTOS2\RTX\Source\rtx_evflags.c
+      Source file:   CMSIS\RTOS2\RTX\Source\rtx_mutex.c
+      Source file:   CMSIS\RTOS2\RTX\Source\rtx_msgqueue.c
+      Source file:   CMSIS\RTOS2\RTX\Source\rtx_evr.c
+      Source file:   CMSIS\RTOS2\RTX\Source\rtx_mempool.c
+      Source file:   CMSIS\RTOS2\RTX\Template\Timer.c
+      Source file:   CMSIS\RTOS2\RTX\Source\rtx_thread.c
+      Source file:   CMSIS\RTOS2\RTX\Template\Thread.c
+      Source file:   CMSIS\RTOS2\RTX\Source\rtx_semaphore.c
+      Source file:   CMSIS\RTOS2\RTX\Source\rtx_lib.c
+      Source file:   CMSIS\RTOS2\RTX\Source\ARM\irq_cm4f.s
+      Source file:   CMSIS\RTOS2\RTX\Source\rtx_delay.c
+      Source file:   CMSIS\RTOS2\RTX\Source\rtx_memory.c
+      Source file:   CMSIS\RTOS2\RTX\Template\Semaphore.c
+      Source file:   CMSIS\RTOS2\RTX\Source\rtx_kernel.c
+      Source file:   CMSIS\RTOS2\RTX\Template\svc_user.c
+      Source file:   CMSIS\RTOS2\RTX\Source\rtx_system.c
+      Source file:   CMSIS\RTOS2\RTX\Source\rtx_timer.c
+      Source file:   CMSIS\RTOS2\Source\os_systick.c
+      Include file:  CMSIS\RTOS2\RTX\Config\RTX_Config.h
+      Source file:   CMSIS\RTOS2\RTX\Template\Events.c
+      Source file:   CMSIS\RTOS2\RTX\Template\MsgQueue.c
+      Source file:   CMSIS\RTOS2\RTX\Template\MemPool.c
+      Source file:   CMSIS\RTOS2\RTX\Template\Mutex.c
+      Source file:   CMSIS\RTOS2\RTX\Template\main.c
+      Source file:   CMSIS\RTOS2\RTX\Config\RTX_Config.c
+      Include file:  CMSIS\RTOS2\RTX\Include\rtx_os.h
+
+   * Component: Keil::Device:Startup:1.0.0
+      Source file:   Device\Source\system_MK64F12.c
+      Source file:   Device\Source\ARM\startup_MK64F12.s
+Build Time Elapsed:  00:00:14
+</pre>
+</body>
+</html>
